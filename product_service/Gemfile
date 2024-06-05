@@ -41,6 +41,8 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'factory_bot_rails'
   gem 'faker'
+  gem 'dotenv-rails'
+  gem 'database_cleaner'
 
   group :rubocop do
     gem "rubocop", ">= 1.25.1", require: false
@@ -57,3 +59,5 @@ group :development do
   # gem "spring"
 end
 
+gem 'http'
+gem 'active_model_serializers'
