@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+
+  user_auth_service:
+    build: ./user_auth_service
+    command: bundle exec rails s -b '0.0.0.0'
+    volumes:
+      - ./user_auth_service:/app
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db
+
+  product_service:
+    build: ./product_service
+    command: bundle exec rails s -b '0.0.0.0'
+    volumes:
+      - ./product_service:/app
+    ports:
+      - "3002:3000"
+    depends_on:
+      - db
+
+  order_service:
+    build: ./order_service
+    command: bundle exec rails s -b '0.0.0.0'
+    volumes:
+      - ./order_service:/app
+    ports:
+      - "3003:3000"
+    depends_on:
+      - db
