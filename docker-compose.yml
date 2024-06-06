@@ -3,6 +3,12 @@ services:
     image: postgres
     environment:
       POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - my_network
 
   user_auth_service:
     build: ./user_auth_service
@@ -13,6 +19,10 @@ services:
       - "3001:3000"
     depends_on:
       - db
+    environment:
+      - RAILS_ENV=development
+    networks:
+      - my_network
 
   product_service:
     build: ./product_service
@@ -23,6 +33,13 @@ services:
       - "3002:3000"
     depends_on:
       - db
+      - user_auth_service
+    environment:
+      - RAILS_ENV=development
+      - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
+      - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
+    networks:
+      - my_network
 
   order_service:
     build: ./order_service
@@ -33,3 +50,42 @@ services:
       - "3003:3000"
     depends_on:
       - db
+      - user_auth_service
+    environment:
+      - RAILS_ENV=development
+      - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
+      - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
+    networks:
+      - my_network
+
+  api_gateway:
+    build: ./api_gateway
+    environment:
+      - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
+      - PRODUCT_SERVICE_URL=http://product_service:3000
+      - ORDER_SERVICE_URL=http://order_service:3000
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user_auth_service
+      - product_service
+      - order_service
+    networks:
+      - my_network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - api_gateway
+    networks:
+      - my_network
+
+volumes:
+  postgres_data:
+
+networks:
+  my_network:
+    driver: bridge
