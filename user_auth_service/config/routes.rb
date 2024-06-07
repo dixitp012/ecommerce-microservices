@@ -3,6 +3,7 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {  registrations: 'registrations' }
   post 'login', to: 'sessions#create'
   get 'api/v1/users/:id', to: 'users#show'
+  get 'auth/validate_token', to: 'authentication#validate_token'
   
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
