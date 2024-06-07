@@ -168,6 +168,7 @@ Style/ExplicitBlockArgument:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
+  SafeAutoCorrect: true
   Exclude:
     - 'actionview/test/**/*.builder'
     - 'actionview/test/**/*.ruby'
