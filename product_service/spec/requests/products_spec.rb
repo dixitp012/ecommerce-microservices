@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe "Products", type: :request do
@@ -138,7 +140,10 @@ RSpec.describe "Products", type: :request do
 
     context 'with valid token' do
       context 'when the record exists' do
-        before { put "/api/v1/products/#{product_id}", params: valid_attributes, headers: headers }
+        before do
+          allow(Product).to receive(:lock).and_call_original
+          put "/api/v1/products/#{product_id}", params: valid_attributes, headers: headers
+        end
 
         it 'updates the record' do
           expect(json['name']).to eq('Updated Product')
@@ -146,6 +151,22 @@ RSpec.describe "Products", type: :request do
 
         it 'returns status code 200' do
           expect(response).to have_http_status(200)
+        end
+      end
+
+      context 'when a concurrent edit occurs' do
+        it 'retries the update up to 3 times' do
+          attempt_count = 0
+          allow(Product).to receive(:lock) do
+            attempt_count += 1
+            raise ActiveRecord::StaleObjectError.new(Product.new, 'update') if attempt_count < 4
+            products.first
+          end
+
+          put "/api/v1/products/#{product_id}", params: valid_attributes, headers: headers
+          expect(Product).to have_received(:lock).exactly(3).times
+          expect(response).to have_http_status(:conflict)
+          expect(json['error']).to eq('Product update failed due to a concurrent edit. Please try again.')
         end
       end
 
@@ -176,6 +197,7 @@ RSpec.describe "Products", type: :request do
       end
     end
   end
+
 
   # Test suite for DELETE /api/v1/products/:id
   describe 'DELETE /api/v1/products/:id' do

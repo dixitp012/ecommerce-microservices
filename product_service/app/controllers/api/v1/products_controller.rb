@@ -27,13 +27,25 @@ class Api::V1::ProductsController < Api::V1::BaseController
 
   # PATCH/PUT /api/v1/products/:id
   def update
-    if @product.update(product_params)
-      render_json @product
-    else
-      render_error @product.errors.full_messages
+    retries = 3
+    begin
+      Product.transaction do
+        @product = Product.lock.find(params[:id])
+        if @product.update(product_params)
+          render_json @product
+        else
+          render_error @product.errors.full_messages
+        end
+      end
+    rescue ActiveRecord::StaleObjectError
+      retries -= 1
+      if retries > 0
+        sleep(0.1) # Short delay before retrying
+        retry
+      else
+        render_error "Product update failed due to a concurrent edit. Please try again.", :conflict
+      end
     end
-  rescue ActiveRecord::StaleObjectError
-    render_error "Product update failed due to a concurrent edit. Please try again.", :conflict
   end
 
   # DELETE /api/v1/products/:id
@@ -43,11 +55,18 @@ class Api::V1::ProductsController < Api::V1::BaseController
   end
 
   private
-    def set_product
-      @product = Product.find(params[:id])
-    end
 
-    def product_params
-      params.permit(:name, :description, :price, :currency, :active)
+  def set_product
+    @product = Product.find(params[:id])
+  end
+
+  def product_params
+    permitted = params.require(:product).permit(:name, :description, :price)
+  
+    if permitted[:price].present?
+      permitted[:price_cents] = (permitted[:price].to_f * 100).to_i
+      permitted.delete(:price)
     end
+    permitted
+  end
 end
