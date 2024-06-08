@@ -9,7 +9,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - my_network
-  
+
   rabbitmq:
     image: rabbitmq:3.6-management-alpine
     ports:
@@ -19,6 +19,13 @@ services:
       AMQP_URL: 'amqp://rabbitmq?connection_attempts=5&retry_delay=5'
       RABBITMQ_DEFAULT_USER: "guest"
       RABBITMQ_DEFAULT_PASS: "guest"
+    networks:
+      - my_network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
     networks:
       - my_network
 
@@ -32,15 +39,16 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
     environment:
       - RAILS_ENV=development
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - REDIS_URL=redis://redis:6379/0
     networks:
       - my_network
 
   product_service:
     build: ./product_service
-    command: bundle exec rails s -b '0.0.0.0'
     volumes:
       - ./product_service:/app
     ports:
@@ -48,10 +56,12 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
       - user_auth_service
     environment:
       - RAILS_ENV=development
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - REDIS_URL=redis://redis:6379/0
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
       - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
     networks:
@@ -67,10 +77,12 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
       - user_auth_service
     environment:
       - RAILS_ENV=development
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - REDIS_URL=redis://redis:6379/0
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
       - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
     networks:

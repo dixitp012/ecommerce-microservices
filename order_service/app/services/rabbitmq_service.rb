@@ -6,10 +6,6 @@ class RabbitmqService
 		@channel = @connection.create_channel
 	end
 
-	def message
-		"Dixit"
-	end
-
 	def publish(queue_name, message)
 		queue = @channel.queue(queue_name, durable: true)
 		queue.publish(message, persistent: true)

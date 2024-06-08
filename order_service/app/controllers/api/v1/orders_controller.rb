@@ -19,8 +19,9 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
     if @order.save
       @order.calculate_total_cost
-      rabbitmq_service.publish_event('order.created', @order)
-      render json: @order, status: :created, include: 'line_items'
+      serialized_order = ActiveModelSerializers::SerializableResource.new(@order).as_json
+      rabbitmq_service.publish_event('order.created', serialized_order)
+      render json: serialized_order, status: :created
     else
       render json: @order.errors, status: :unprocessable_entity
     end

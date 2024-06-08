@@ -66,3 +66,8 @@ end
 gem 'http'
 gem 'active_model_serializers'
 gem 'money-rails'
+gem 'bunny'
+gem 'sidekiq'
+gem 'whenever', require: false
+gem 'foreman'
+
