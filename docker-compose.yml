@@ -9,6 +9,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - my_network
+  
+  rabbitmq:
+    image: rabbitmq:3.6-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      AMQP_URL: 'amqp://rabbitmq?connection_attempts=5&retry_delay=5'
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    networks:
+      - my_network
 
   user_auth_service:
     build: ./user_auth_service
@@ -19,8 +31,10 @@ services:
       - "3001:3000"
     depends_on:
       - db
+      - rabbitmq
     environment:
       - RAILS_ENV=development
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     networks:
       - my_network
 
@@ -33,9 +47,11 @@ services:
       - "3002:3000"
     depends_on:
       - db
+      - rabbitmq
       - user_auth_service
     environment:
       - RAILS_ENV=development
+      - RABBITMQ_URL=amqp://rabbitmq:5672
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
       - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
     networks:
@@ -50,9 +66,11 @@ services:
       - "3003:3000"
     depends_on:
       - db
+      - rabbitmq
       - user_auth_service
     environment:
       - RAILS_ENV=development
+      - RABBITMQ_URL=amqp://rabbitmq:5672
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
       - USER_AUTH_SERVICE_TOKEN=your_generated_access_token
     networks:
