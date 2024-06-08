@@ -89,4 +89,7 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   config.include FactoryBot::Syntax::Methods
   config.include RequestSpecHelper, type: :request
+  config.before(:each) do
+    ENV['USER_AUTH_SERVICE_URL'] = 'http://example.com'
+  end
 end
