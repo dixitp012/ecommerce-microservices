@@ -1,6 +1,6 @@
-
 class Api::V1::OrdersController < Api::V1::BaseController
   before_action :set_order, only: [:show, :update, :destroy]
+  after_action :cleanup,  only: [:create]
 
   # GET /api/v1/orders
   def index
@@ -19,6 +19,7 @@ class Api::V1::OrdersController < Api::V1::BaseController
 
     if @order.save
       @order.calculate_total_cost
+      rabbitmq_service.publish_event('order.created', @order)
       render json: @order, status: :created, include: 'line_items'
     else
       render json: @order.errors, status: :unprocessable_entity
@@ -58,6 +59,14 @@ class Api::V1::OrdersController < Api::V1::BaseController
         end
       end
     end.permit(:user_id, line_items_attributes: [:id, :product_id, :quantity, :price_cents, :_destroy])
+  end
+
+  def rabbitmq_service
+    @rabbitmq_service ||= RabbitmqService.new
+  end
+
+  def cleanup
+    @rabbitmq_service&.close
   end
 end
 

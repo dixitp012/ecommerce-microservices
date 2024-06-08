@@ -68,3 +68,4 @@ end
 gem 'http'
 gem 'active_model_serializers'
 gem 'money-rails'
+gem 'bunny'
