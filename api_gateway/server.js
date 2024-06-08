@@ -1,6 +1,5 @@
 const express = require('express');
 const httpProxy = require("http-proxy");
-
 const proxy = httpProxy.createProxyServer();
 const morgan = require('morgan');
 
@@ -9,6 +8,10 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(morgan('dev'));
+
+proxy.on('proxyReq', (proxyReq, req, res, options) => {
+  proxyReq.setTimeout(5000); // Increase the timeout to 5 seconds
+});
 
 // Proxy configuration
 app.use("/auth", (req, res) => {
@@ -19,16 +22,19 @@ app.use("/auth", (req, res) => {
 });
 
 // Route requests to the product service
-app.use("/products", (req, res) => {
-  proxy.web(req, res, { target: process.env.PRODUCT_SERVICE_URL }, (err) => {
+app.use("/api/v1/products", (req, res) => {
+  const targetUrl = `${process.env.PRODUCT_SERVICE_URL}/api/v1/products`;
+
+  proxy.web(req, res, { target: targetUrl }, (err) => {
     console.error("Error connecting to product_service:", err);
     res.status(502).send("Bad Gateway");
   });
 });
 
 // Route requests to the order service
-app.use("/orders", (req, res) => {
-  proxy.web(req, res, { target: process.env.ORDER_SERVICE_URL }, (err) => {
+app.use("/api/v1/orders", (req, res) => {
+  const targetUrl = `${process.env.ORDER_SERVICE_URL}/api/v1/orders`;
+  proxy.web(req, res, { target: targetUrl }, (err) => {
     console.error("Error connecting to order_service:", err);
     res.status(502).send("Bad Gateway");
   });
