@@ -1,9 +1,12 @@
 FactoryBot.define do
 	factory :product do
-		name { Faker::Commerce.product_name }
-		description { Faker::Lorem.paragraph }
-		price { Faker::Commerce.price(range: 10..100, as_string: false) * 100 } # Price in cents
-		currency { 'USD' }
-		active { Faker::Boolean.boolean }
+	  name { "Macbook Pro" }
+	  description { "Test Description...." }
+	  price_cents { 910000 }
+	  price_currency { "USD" }
+	  currency { "USD" }
+	  active { false }
+	  stock { 100 } # Add a default value for stock
+	  reserved { 0 }
 	end
-end
+  end

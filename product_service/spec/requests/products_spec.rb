@@ -55,6 +55,7 @@ RSpec.describe "Products", type: :request do
         it 'returns the product' do
           expect(json).not_to be_empty
           expect(json['id']).to eq(product_id)
+          expect(json['stock']).to eq(products.first.stock)
         end
 
         it 'returns status code 200' do
@@ -92,7 +93,7 @@ RSpec.describe "Products", type: :request do
 
   # Test suite for POST /api/v1/products
   describe 'POST /api/v1/products' do
-    let(:valid_attributes) { { name: 'Product 1', description: 'Product description', price: 1000, currency: 'USD', active: true }.to_json }
+    let(:valid_attributes) { { name: 'Product 1', description: 'Product description', price: 1000, currency: 'USD', stock: 10, active: true }.to_json }
 
     context 'with valid token' do
       context 'when the request is valid' do
@@ -100,6 +101,7 @@ RSpec.describe "Products", type: :request do
 
         it 'creates a product' do
           expect(json['name']).to eq('Product 1')
+          expect(json['stock']).to eq(10)
         end
 
         it 'returns status code 200' do
@@ -108,7 +110,7 @@ RSpec.describe "Products", type: :request do
       end
 
       context 'when the request is invalid' do
-        let(:invalid_attributes) { { name: '' }.to_json }
+        let(:invalid_attributes) { { name: '', stock: -5 }.to_json }
         before { post '/api/v1/products', params: invalid_attributes, headers: headers }
 
         it 'returns status code 422' do
@@ -116,7 +118,7 @@ RSpec.describe "Products", type: :request do
         end
 
         it 'returns a validation failure message' do
-          expect(json['error']).to include("Name can't be blank")
+          expect(json['error']).to include("Name can't be blank", "Stock must be greater than or equal to 0")
         end
       end
     end
@@ -136,7 +138,7 @@ RSpec.describe "Products", type: :request do
 
   # Test suite for PUT /api/v1/products/:id
   describe 'PUT /api/v1/products/:id' do
-    let(:valid_attributes) { { name: 'Updated Product' }.to_json }
+    let(:valid_attributes) { { name: 'Updated Product', stock: 15 }.to_json }
 
     context 'with valid token' do
       context 'when the record exists' do
@@ -147,6 +149,7 @@ RSpec.describe "Products", type: :request do
 
         it 'updates the record' do
           expect(json['name']).to eq('Updated Product')
+          expect(json['stock']).to eq(15)
         end
 
         it 'returns status code 200' do
@@ -197,7 +200,6 @@ RSpec.describe "Products", type: :request do
       end
     end
   end
-
 
   # Test suite for DELETE /api/v1/products/:id
   describe 'DELETE /api/v1/products/:id' do
