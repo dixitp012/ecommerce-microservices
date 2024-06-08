@@ -61,7 +61,7 @@ class Api::V1::ProductsController < Api::V1::BaseController
   end
 
   def product_params
-    permitted = params.require(:product).permit(:name, :description, :price)
+    permitted = params.require(:product).permit(:name, :description, :price, :currency, :active)
   
     if permitted[:price].present?
       permitted[:price_cents] = (permitted[:price].to_f * 100).to_i
