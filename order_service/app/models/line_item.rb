@@ -1,5 +1,5 @@
 class LineItem < ApplicationRecord
-  monetize :price_cents
+  monetize :price_cents, with_model_currency: :currency, as: :price
   
   belongs_to :order
 

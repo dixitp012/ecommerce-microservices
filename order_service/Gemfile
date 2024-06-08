@@ -61,6 +61,10 @@ group :development do
   # gem "spring"
 end
 
+group :test do
+  gem 'webmock'
+end
+
 gem 'http'
 gem 'active_model_serializers'
 gem 'money-rails'
