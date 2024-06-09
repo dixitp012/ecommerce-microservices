@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# app/services/stock_check_service.rb
 class StockCheckService
   def initialize(product_id, quantity)
     @product_id = product_id
@@ -11,9 +10,9 @@ class StockCheckService
 
   def check_stock
     response = HTTP.auth("Bearer #{@token}")
-                  .get("/api/v1/products/#{@product_id}/stock")
-    if response.success?
-      response.parsed_response["stock"] >= @quantity
+                  .get("#{@base_url}/api/v1/products/#{@product_id}/available_stock")
+    if response.status.success?
+      response.parse["stock"] >= @quantity
     else
       false
     end

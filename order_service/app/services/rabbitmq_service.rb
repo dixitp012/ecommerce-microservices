@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# rabbitmq_service.rb
 class RabbitmqService
   def initialize
     @connection = Bunny.new(ENV["RABBITMQ_URL"])
