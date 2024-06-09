@@ -239,4 +239,61 @@ RSpec.describe "Products", type: :request do
       end
     end
   end
+
+  # Test suite for POST /api/v1/products/:id/add_stock
+  describe 'POST /api/v1/products/:id/add_stock' do
+    let(:valid_attributes) { { stock: 5 }.to_json }
+
+    context 'with valid token' do
+      context 'when the request is valid' do
+        before { post "/api/v1/products/#{product_id}/add_stock", params: valid_attributes, headers: headers }
+
+        it 'adds stock to the product' do
+          expect(json['stock']).to eq(products.first.stock + 5)
+        end
+
+        it 'returns status code 200' do
+          expect(response).to have_http_status(200)
+        end
+      end
+
+      context 'when the request is invalid' do
+        let(:invalid_attributes) { { stock: -5 }.to_json }
+        before { post "/api/v1/products/#{product_id}/add_stock", params: invalid_attributes, headers: headers }
+
+        it 'returns status code 422' do
+          expect(response).to have_http_status(422)
+        end
+
+        it 'returns a validation failure message' do
+          expect(json['error']).to include("Stock must be greater than 0")
+        end
+      end
+
+      context 'when the record does not exist' do
+        let(:product_id) { 100 }
+        before { post "/api/v1/products/#{product_id}/add_stock", params: valid_attributes, headers: headers }
+
+        it 'returns status code 404' do
+          expect(response).to have_http_status(404)
+        end
+
+        it 'returns a not found message' do
+          expect(response.body).to match(/Couldn't find Product/)
+        end
+      end
+    end
+
+    context 'with invalid token' do
+      before { post "/api/v1/products/#{product_id}/add_stock", params: valid_attributes, headers: invalid_headers }
+
+      it 'returns status code 401' do
+        expect(response).to have_http_status(401)
+      end
+
+      it 'returns an unauthorized message' do
+        expect(json['error']).to eq('Unauthorized')
+      end
+    end
+  end
 end

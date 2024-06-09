@@ -54,6 +54,24 @@ class Api::V1::ProductsController < Api::V1::BaseController
     head :no_content
   end
 
+  # POST /api/v1/products/:id/add_stock
+  def add_stock
+    product = Product.find(params[:id])
+    stock = params[:stock].to_i
+
+    if stock <= 0
+      render json: { error: 'Stock must be greater than 0' }, status: :unprocessable_entity
+      return
+    end
+
+    new_stock = product.stock + stock
+    if product.update(stock: new_stock)
+      render json: product, status: :ok
+    else
+      render json: product.errors, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_product
