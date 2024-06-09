@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # app/controllers/concerns/authenticate_user.rb
 module Authenticable
   extend ActiveSupport::Concern
@@ -7,25 +9,22 @@ module Authenticable
   end
 
   private
+    def authenticate_user!
+      token = request.headers["Authorization"]&.split(" ")&.last
 
-  def authenticate_user!
-    token = request.headers['Authorization']&.split(' ')&.last
-
-    if token && valid_token?(token)
-      true
-    else
-      render json: { error: 'Unauthorized' }, status: :unauthorized
+      if token && valid_token?(token)
+        true
+      else
+        render json: { error: "Unauthorized" }, status: :unauthorized
+      end
     end
-  end
 
-  def valid_token?(token)
-    response = HTTP.get("#{ENV['USER_AUTH_SERVICE_URL']}/auth/validate_token", headers: { Authorization: "Bearer #{token}" })
-    response.status == 200
-  end
+    def valid_token?(token)
+      response = HTTP.get("#{ENV['USER_AUTH_SERVICE_URL']}/auth/validate_token", headers: { Authorization: "Bearer #{token}" })
+      response.status == 200
+    end
 
-  def health_check?
-    controller_name == 'health' && action_name == 'show'
-  end
+    def health_check?
+      controller_name == "health" && action_name == "show"
+    end
 end
-
-  

@@ -59,7 +59,7 @@ class Api::V1::ProductsController < Api::V1::BaseController
     stock = params[:stock].to_i
 
     if stock <= 0
-      render json: { error: 'Stock must be greater than 0' }, status: :unprocessable_entity
+      render json: { error: "Stock must be greater than 0" }, status: :unprocessable_entity
       return
     end
 
@@ -77,18 +77,17 @@ class Api::V1::ProductsController < Api::V1::BaseController
   end
 
   private
-
-  def set_product
-    @product = Product.find(params[:id])
-  end
-
-  def product_params
-    permitted = params.require(:product).permit(:name, :description, :stock, :price, :currency, :active)
-  
-    if permitted[:price].present?
-      permitted[:price_cents] = (permitted[:price].to_f * 100).to_i
-      permitted.delete(:price)
+    def set_product
+      @product = Product.find(params[:id])
     end
-    permitted
-  end
+
+    def product_params
+      permitted = params.require(:product).permit(:name, :description, :stock, :price, :currency, :active)
+
+      if permitted[:price].present?
+        permitted[:price_cents] = (permitted[:price].to_f * 100).to_i
+        permitted.delete(:price)
+      end
+      permitted
+    end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "http"
-
 class UserService
   def initialize
     @token = ENV["USER_AUTH_SERVICE_TOKEN"]

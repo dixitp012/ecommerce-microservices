@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 class LineItemSerializer < ActiveModel::Serializer
   attributes :id, :product_id, :quantity, :price, :order_id, :created_at, :updated_at
-  
+
   belongs_to :order
 
   def price
