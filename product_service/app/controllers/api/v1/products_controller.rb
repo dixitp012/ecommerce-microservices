@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Api::V1::ProductsController < Api::V1::BaseController
-  before_action :set_product, only: [:show, :update, :destroy]
+  before_action :set_product, only: [:show, :update, :destroy, :add_stock, :available_stock]
 
   # GET /api/v1/products
   def index
@@ -56,7 +56,6 @@ class Api::V1::ProductsController < Api::V1::BaseController
 
   # POST /api/v1/products/:id/add_stock
   def add_stock
-    product = Product.find(params[:id])
     stock = params[:stock].to_i
 
     if stock <= 0
@@ -64,12 +63,17 @@ class Api::V1::ProductsController < Api::V1::BaseController
       return
     end
 
-    new_stock = product.stock + stock
-    if product.update(stock: new_stock)
-      render json: product, status: :ok
+    new_stock = @product.stock + stock
+    if @product.update(stock: new_stock)
+      render json: @product, status: :ok
     else
-      render json: product.errors, status: :unprocessable_entity
+      render json: @product.errors, status: :unprocessable_entity
     end
+  end
+
+  # GET /api/v1/products/:id/available_stock
+  def available_stock
+    render json: { stock: @product.available_stock }, status: :ok
   end
 
   private

@@ -19,7 +19,7 @@ class ProductUpdateJob
 	def update_product_stock(order_data)
 		order_data['line_items'].each do |line_item|
 			product = Product.find(line_item['product_id'])
-			product.update(stock: product.stock - line_item['quantity'])
+			product.update(reserved: product.reserved + line_item['quantity'])
 		end
 	end
 end

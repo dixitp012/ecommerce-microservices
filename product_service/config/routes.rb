@@ -5,6 +5,7 @@ Rails.application.routes.draw do
       resources :products do
         member do
           post 'add_stock'
+          get  'available_stock'
         end
       end
     end
