@@ -426,16 +426,16 @@ Authorization: Bearer <your_token>
 }
 ```
 
-### Delete Order
+### Cancel Order
 
-- **URL**: `/api/v1/orders/:id`
-- **Method**: `DELETE`
+- **URL**: `/api/v1/orders/:id/cancel`
+- **Method**: `PUT`
 - **Auth Required**: Yes
-- **Description**: Delete an existing order.
+- **Description**: Cancel an existing order.
 
 #### Request Example:
 
 ```json
-DELETE /api/v1/orders/:id
+PUT /api/v1/orders/:id/cancel
 Authorization: Bearer <your_token>
 ```
