@@ -1,3 +1,155 @@
+# E-commerce Microservices Setup
+
+This project consists of multiple microservices for an e-commerce application, including user authentication, product management, order management, an API gateway, and Nginx. The services use Docker and Docker Compose for containerization and orchestration.
+
+## Prerequisites
+
+- Docker: [Install Docker](https://docs.docker.com/get-docker/)
+- Docker Compose: [Install Docker Compose](https://docs.docker.com/compose/install/)
+
+## Project Structure
+
+```
+ecommerce-microservices/
+├── user_auth_service/
+├── product_service/
+├── order_service/
+├── api_gateway/
+├── nginx/
+├── docker-compose.yml
+└── README.md
+```
+
+## Services
+
+- **db**: PostgreSQL database
+- **rabbitmq**: RabbitMQ message broker
+- **redis**: Redis for caching
+- **user_auth_service**: User authentication service
+- **product_service**: Product management service
+- **order_service**: Order management service
+- **api_gateway**: API gateway for routing requests
+- **nginx**: Nginx server for load balancing
+
+## Setup Instructions
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/yourusername/ecommerce-microservices.git
+    cd ecommerce-microservices
+    ```
+
+2. **Build and start the services:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+    **If `rabbitmq` and `redis` images are not pulled with `docker-compose up --build`, pull them manually:**
+
+    ```bash
+    docker pull rabbitmq:3.6-management-alpine
+    docker pull redis:alpine
+    ```
+
+3. **Generate the `USER_AUTH_SERVICE_TOKEN`:**
+
+    To communicate between microservices, generate the authentication token by running the following command:
+
+    ```bash
+    docker-compose exec user_auth_service bundle exec rake token:generate
+    ```
+
+    This command will generate a token. Note this token for the next step.
+
+4. **Update `docker-compose.yml` with the generated token:**
+
+    Open the `docker-compose.yml` file and update the `USER_AUTH_SERVICE_TOKEN` environment variable for the services with the generated token.
+
+    ```yaml
+    environment:
+      - USER_AUTH_SERVICE_TOKEN=your_generated_token
+    ```
+
+5. **Restart the services to apply the changes:**
+
+    ```bash
+    docker-compose down
+    docker-compose up --build
+    ```
+
+6. **Accessing the services:**
+
+    All endpoints should be accessed using the API Gateway base URL (`http://localhost:3000`) instead of the specific service URLs.
+
+    - **API Gateway**: http://localhost:3000
+    - **User Authentication Service**: http://localhost:3001
+    - **Product Service**: http://localhost:3002
+    - **Order Service**: http://localhost:3003
+    - **Nginx**: http://localhost
+
+## Environment Variables
+
+The services require certain environment variables to be set. These are configured in the `docker-compose.yml` file.
+
+- **db**:
+  - `POSTGRES_PASSWORD`: Password for PostgreSQL.
+
+- **rabbitmq**:
+  - `AMQP_URL`: URL for RabbitMQ.
+  - `RABBITMQ_DEFAULT_USER`: Default username for RabbitMQ.
+  - `RABBITMQ_DEFAULT_PASS`: Default password for RabbitMQ.
+
+- **redis**:
+  - No environment variables required.
+
+- **user_auth_service**, **product_service**, **order_service**, **api_gateway**:
+  - `RAILS_ENV`: Rails environment (development).
+  - `RABBITMQ_URL`: URL for RabbitMQ.
+  - `REDIS_URL`: URL for Redis.
+  - `USER_AUTH_SERVICE_URL`: URL for User Authentication Service.
+  - `USER_AUTH_SERVICE_TOKEN`: Token for User Authentication Service (to be generated and updated as described above).
+  - `PRODUCT_SERVICE_URL`: URL for Product Service.
+  - `ORDER_SERVICE_URL`: URL for Order Service.
+
+## Dependencies
+
+Each service may have its own dependencies and setup instructions. Refer to the `README.md` file within each service's directory for more details.
+
+## Data Persistence
+
+PostgreSQL data is persisted in a Docker volume named `postgres_data`.
+
+## Network
+
+All services are connected via a Docker network named `my_network`.
+
+## Troubleshooting
+
+- If you encounter issues with services not starting, check the Docker logs for error messages:
+
+    ```bash
+    docker-compose logs
+    ```
+
+- Ensure that no other services are running on the same ports (3000-3003, 5432, 5672, 15672, 6379, 80).
+
+## Stopping the Services
+
+To stop the services, run:
+
+```bash
+docker-compose down
+```
+
+## Cleanup
+
+To remove all containers, networks, and volumes, run:
+
+```bash
+docker-compose down -v
+```
 
 # E-commerce Microservice API Documentation
 
