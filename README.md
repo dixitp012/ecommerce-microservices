@@ -24,7 +24,7 @@ ecommerce-microservices/
 
 - **db**: PostgreSQL database
 - **rabbitmq**: RabbitMQ message broker
-- **redis**: Redis for caching
+- **sidekiq**: Sidekiq for background job
 - **user_auth_service**: User authentication service
 - **product_service**: Product management service
 - **order_service**: Order management service
@@ -40,10 +40,18 @@ ecommerce-microservices/
     cd ecommerce-microservices
     ```
 
-2. **Build and start the services:**
+2. **Build, start the services and database (create & migration):**
 
     ```bash
     docker-compose up --build
+    ```
+
+    ```bash
+    # Run the following commands only if setting up the databases for the first time:
+
+    docker-compose exec user_auth_service bundle exec rails db:create db:migrate
+    docker-compose exec product_service bundle exec rails db:create db:migrate
+    docker-compose exec order_service bundle exec rails db:create db:migrate
     ```
 
     **If `rabbitmq` and `redis` images are not pulled with `docker-compose up --build`, pull them manually:**

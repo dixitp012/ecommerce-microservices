@@ -10,17 +10,24 @@ class ProductUpdateJob
 
     case event_type
     when "order.created"
-      update_product_stock(event_data)
+      update_product_stock(event_data, :reserve)
+    when "order.canceled"
+      update_product_stock(event_data, :release)
     else
       puts "Unknown event type: #{event_type}"
     end
   end
 
   private
-    def update_product_stock(order_data)
+    def update_product_stock(order_data, action)
       order_data["line_items"].each do |line_item|
         product = Product.find(line_item["product_id"])
-        product.update(reserved: product.reserved + line_item["quantity"])
+        case action
+        when :reserve
+          product.update(reserved: product.reserved + line_item["quantity"])
+        when :release
+          product.update(reserved: 0, stock: product.stock + product.reserved )
+        end
       end
     end
 end
