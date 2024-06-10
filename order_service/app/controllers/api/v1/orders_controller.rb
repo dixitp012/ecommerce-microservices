@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Api::V1::OrdersController < Api::V1::BaseController
-  before_action :set_order, only: [:show, :update, :destroy]
-  after_action :cleanup,  only: [:create]
+  before_action :set_order, only: [:show, :update, :cancel]
+  after_action :cleanup, only: [:create, :cancel]
 
   # GET /api/v1/orders
   def index
@@ -42,10 +42,15 @@ class Api::V1::OrdersController < Api::V1::BaseController
     end
   end
 
-  # DELETE /api/v1/orders/:id
-  def destroy
-    @order.destroy
-    head :no_content
+  # PUT /api/v1/orders/:id/cancel
+  def cancel
+    if @order.update(status: "canceled")
+      serialized_order = ActiveModelSerializers::SerializableResource.new(@order).as_json
+      rabbitmq_service.publish_event("order.canceled", serialized_order)
+      render json: @order, include: "line_items"
+    else
+      render json: @order.errors, status: :unprocessable_entity
+    end
   end
 
   private

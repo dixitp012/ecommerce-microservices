@@ -10,8 +10,14 @@ RSpec.describe "Orders API", type: :request do
   let(:product_id) { SecureRandom.uuid }
   let(:headers) { { "Content-Type" => "application/json", "Authorization" => "Bearer valid_token" } }
   let(:invalid_headers) { { "Content-Type" => "application/json", "Authorization" => "Bearer invalid_token" } }
+  let(:rabbitmq_service) { instance_double("RabbitmqService", close: true) }
+  let(:stock_check_service) { instance_double("StockCheckService", check_stock: true) }
 
   before do
+    allow(RabbitmqService).to receive(:new).and_return(rabbitmq_service)
+    allow(StockCheckService).to receive(:new).and_return(stock_check_service)
+    allow(rabbitmq_service).to receive(:publish_event)
+
     stub_request(:get, "#{ENV['USER_AUTH_SERVICE_URL']}/auth/validate_token")
       .with(headers: { 'Authorization' => 'Bearer valid_token' })
       .to_return(status: 200, body: "", headers: {})
@@ -21,7 +27,10 @@ RSpec.describe "Orders API", type: :request do
       .to_return(status: 401, body: '{"error":"Unauthorized"}', headers: {})
   end
 
-  # Test suite for GET /api/v1/orders
+  after do
+    @rabbitmq_service&.close
+  end
+
   describe 'GET /api/v1/orders' do
     context 'with valid token' do
       before { get '/api/v1/orders', headers: headers }
@@ -49,7 +58,6 @@ RSpec.describe "Orders API", type: :request do
     end
   end
 
-  # Test suite for GET /api/v1/orders/:id
   describe 'GET /api/v1/orders/:id' do
     context 'with valid token' do
       context 'when the record exists' do
@@ -93,7 +101,6 @@ RSpec.describe "Orders API", type: :request do
     end
   end
 
-  # Test suite for POST /api/v1/orders
   describe 'POST /api/v1/orders' do
     let(:valid_attributes) { { user_id: user_id, line_items_attributes: [{ product_id: product_id, quantity: 2, price_cents: 1000 }] }.to_json }
 
@@ -109,6 +116,10 @@ RSpec.describe "Orders API", type: :request do
         it 'returns status code 201' do
           expect(response).to have_http_status(201)
         end
+
+        it 'publishes an order.created event' do
+          expect(rabbitmq_service).to have_received(:publish_event).with("order.created", anything)
+        end
       end
 
       context 'when the request is invalid' do
@@ -121,6 +132,21 @@ RSpec.describe "Orders API", type: :request do
 
         it 'returns a validation failure message' do
           expect(response.body).to match(/can't be blank/)
+        end
+      end
+
+      context 'when stock is insufficient' do
+        before do
+          allow(stock_check_service).to receive(:check_stock).and_return(false)
+          post '/api/v1/orders', params: valid_attributes, headers: headers
+        end
+
+        it 'returns status code 422' do
+          expect(response).to have_http_status(422)
+        end
+
+        it 'returns an insufficient stock message' do
+          expect(response.body).to match(/Insufficient stock for one or more products/)
         end
       end
     end
@@ -138,7 +164,6 @@ RSpec.describe "Orders API", type: :request do
     end
   end
 
-  # Test suite for PUT /api/v1/orders/:id
   describe 'PUT /api/v1/orders/:id' do
     let(:valid_attributes) { { user_id: user_id, line_items_attributes: [{ product_id: product_id, quantity: 2, price_cents: 1000 }] }.to_json }
 
@@ -183,18 +208,41 @@ RSpec.describe "Orders API", type: :request do
     end
   end
 
-  # Test suite for DELETE /api/v1/orders/:id
-  describe 'DELETE /api/v1/orders/:id' do
+  describe 'PUT /api/v1/orders/:id/cancel' do
     context 'with valid token' do
-      before { delete "/api/v1/orders/#{order_id}", headers: headers }
+      context 'when the order exists' do
+        before { put "/api/v1/orders/#{order_id}/cancel", headers: headers }
 
-      it 'returns status code 204' do
-        expect(response).to have_http_status(204)
+        it 'cancels the order' do
+          expect(json['status']).to eq('canceled')
+        end
+
+        it 'returns status code 200' do
+          expect(response).to have_http_status(200)
+        end
+
+        it 'publishes an order.canceled event' do
+          expect(rabbitmq_service).to have_received(:publish_event).with("order.canceled", anything)
+        end
+      end
+
+      context 'when the order does not exist' do
+        let(:order_id) { SecureRandom.uuid }
+
+        before { put "/api/v1/orders/#{order_id}/cancel", headers: headers }
+
+        it 'returns status code 404' do
+          expect(response).to have_http_status(404)
+        end
+
+        it 'returns a not found message' do
+          expect(response.body).to match(/Couldn't find Order/)
+        end
       end
     end
 
     context 'with invalid token' do
-      before { delete "/api/v1/orders/#{order_id}", headers: invalid_headers }
+      before { put "/api/v1/orders/#{order_id}/cancel", headers: invalid_headers }
 
       it 'returns status code 401' do
         expect(response).to have_http_status(401)
