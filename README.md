@@ -1,4 +1,117 @@
-# E-commerce Microservices Setup
+# README for Setting Up Kubernetes Using Minikube
+
+This guide will help you set up Kubernetes using Minikube and deploy your services using the provided `deploy.sh` script. We will use Minikube tunnel to expose the services directly.
+
+## Prerequisites
+
+- Minikube
+- kubectl
+- Docker
+
+## Setup
+
+1. **Start Minikube**:
+
+   Start Minikube with sufficient resources:
+
+   ```bash
+   minikube start --cpus=4 --memory=8192
+   ```
+
+2. **Build and Push Docker Images**:
+
+   Navigate to the directory containing the `build_and_push.sh` script and run the script to build and push the Docker images:
+
+   ```bash
+   cd path/to/your/scripts
+   chmod +x build_and_push.sh  # Make the script executable if permissions are not given
+   ./build_and_push.sh <username> all [tag]  # Replace <username> with your Docker Hub username and optionally specify a tag
+   ```
+
+   For example, to build and push all services with the tag `latest`:
+
+   ```bash
+   ./build_and_push.sh <username> all latest
+   ```
+
+   Or, to build and push a specific service with the tag `latest`:
+
+   ```bash
+   ./build_and_push.sh <username> user_auth_service latest
+   ```
+
+3. **Deploy Services**:
+
+   Navigate to the `deployment` directory and run the deployment script:
+
+   ```bash
+   cd k8s/deployments
+   chmod +x deploy.sh  # Make the script executable if permissions are not given
+   ./deploy.sh
+   ```
+
+4. **Generate and Update Token**:
+
+   Get the pod name for `user-auth-service` and run the rake task to generate the token:
+
+   ```bash
+   # Get the pod name
+   kubectl get pods -l app=user-auth-service
+
+   # Run the rake task inside the pod
+   kubectl exec -it <user-auth-service-pod-name> -- bundle exec rake token:generate
+   ```
+
+   Update the `USER_AUTH_SERVICE_TOKEN` in `product-service-secret.yml` and `order-service-secret.yml` with the generated token.
+   
+   ```bash
+   cd k8s/configmap/
+   kubectl apply -f order-service-secret.yml
+   kubectl apply -f product-service-secret.yml
+   ```
+
+5. **Run Minikube Tunnel**:
+
+   Start Minikube tunnel to access the services from outside the cluster:
+
+   ```bash
+   minikube tunnel
+   ```
+
+   This command will run in the foreground and create a network route to access your services.
+
+6. **Get Service URLs**:
+
+   Get the URLs of the services:
+
+   ```bash
+   minikube service list
+   ```
+
+   Note the URLs for your services. They will be something like `http://localhost:<node-port>`.
+
+7. **Access Services**:
+
+   You can now access your services using the URLs provided by `minikube service list`.
+
+   - **API Gateway**: The API Gateway will be available at `http://localhost:3000`
+
+## Cleanup
+
+To stop Minikube:
+
+```bash
+minikube stop
+```
+
+To delete the Minikube cluster entirely:
+
+```bash
+minikube delete
+```
+
+
+# E-commerce Microservices Setup Using Docker & Docker Compose
 
 This project consists of multiple microservices for an e-commerce application, including user authentication, product management, order management, an API gateway, and Nginx. The services use Docker and Docker Compose for containerization and orchestration.
 
