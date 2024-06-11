@@ -20,8 +20,8 @@ RSpec.describe "Products", type: :request do
 
   # Test suite for GET /api/v1/products
   describe 'GET /api/v1/products' do
-    context 'with valid token' do
-      before { get '/api/v1/products', headers: headers }
+    context 'without authentication' do
+      before { get '/api/v1/products' }
 
       it 'returns products' do
         expect(json).not_to be_empty
@@ -32,25 +32,13 @@ RSpec.describe "Products", type: :request do
         expect(response).to have_http_status(200)
       end
     end
-
-    context 'with invalid token' do
-      before { get '/api/v1/products', headers: invalid_headers }
-
-      it 'returns status code 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'returns an unauthorized message' do
-        expect(json['error']).to eq('Unauthorized')
-      end
-    end
   end
 
   # Test suite for GET /api/v1/products/:id
   describe 'GET /api/v1/products/:id' do
-    context 'with valid token' do
+    context 'without authentication' do
       context 'when the record exists' do
-        before { get "/api/v1/products/#{product_id}", headers: headers }
+        before { get "/api/v1/products/#{product_id}" }
 
         it 'returns the product' do
           expect(json).not_to be_empty
@@ -66,7 +54,7 @@ RSpec.describe "Products", type: :request do
       context 'when the record does not exist' do
         let(:product_id) { 100 }
 
-        before { get "/api/v1/products/#{product_id}", headers: headers }
+        before { get "/api/v1/products/#{product_id}" }
 
         it 'returns status code 404' do
           expect(response).to have_http_status(404)
@@ -77,9 +65,25 @@ RSpec.describe "Products", type: :request do
         end
       end
     end
+  end
+
+  # Test suite for GET /api/v1/products/:id/available_stock
+  describe 'GET /api/v1/products/:id/available_stock' do
+    context 'with valid token' do
+      before { get "/api/v1/products/#{product_id}/available_stock", headers: headers }
+
+      it 'returns the stock of the product' do
+        expect(json).not_to be_empty
+        expect(json['stock']).to eq(products.first.stock)
+      end
+
+      it 'returns status code 200' do
+        expect(response).to have_http_status(200)
+      end
+    end
 
     context 'with invalid token' do
-      before { get "/api/v1/products/#{product_id}", headers: invalid_headers }
+      before { get "/api/v1/products/#{product_id}/available_stock", headers: invalid_headers }
 
       it 'returns status code 401' do
         expect(response).to have_http_status(401)
@@ -87,6 +91,20 @@ RSpec.describe "Products", type: :request do
 
       it 'returns an unauthorized message' do
         expect(json['error']).to eq('Unauthorized')
+      end
+    end
+
+    context 'when the record does not exist' do
+      let(:product_id) { 100 }
+
+      before { get "/api/v1/products/#{product_id}/available_stock", headers: headers }
+
+      it 'returns status code 404' do
+        expect(response).to have_http_status(404)
+      end
+
+      it 'returns a not found message' do
+        expect(response.body).to match(/Couldn't find Product/)
       end
     end
   end
@@ -294,48 +312,6 @@ RSpec.describe "Products", type: :request do
 
       it 'returns an unauthorized message' do
         expect(json['error']).to eq('Unauthorized')
-      end
-    end
-  end
-
-  # Test suite for GET /api/v1/products/:id/available_stock
-  describe 'GET /api/v1/products/:id/available_stock' do
-    context 'with valid token' do
-      before { get "/api/v1/products/#{product_id}/available_stock", headers: headers }
-
-      it 'returns the stock of the product' do
-        expect(json).not_to be_empty
-        expect(json['stock']).to eq(products.first.stock)
-      end
-
-      it 'returns status code 200' do
-        expect(response).to have_http_status(200)
-      end
-    end
-
-    context 'with invalid token' do
-      before { get "/api/v1/products/#{product_id}/available_stock", headers: invalid_headers }
-
-      it 'returns status code 401' do
-        expect(response).to have_http_status(401)
-      end
-
-      it 'returns an unauthorized message' do
-        expect(json['error']).to eq('Unauthorized')
-      end
-    end
-
-    context 'when the record does not exist' do
-      let(:product_id) { 100 }
-
-      before { get "/api/v1/products/#{product_id}/available_stock", headers: headers }
-
-      it 'returns status code 404' do
-        expect(response).to have_http_status(404)
-      end
-
-      it 'returns a not found message' do
-        expect(response.body).to match(/Couldn't find Product/)
       end
     end
   end

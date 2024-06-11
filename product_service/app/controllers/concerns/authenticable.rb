@@ -5,7 +5,7 @@ module Authenticable
   extend ActiveSupport::Concern
 
   included do
-    before_action :authenticate_user!, unless: :health_check?
+    before_action :authenticate_user!, unless: :public_route?
   end
 
   private
@@ -24,7 +24,15 @@ module Authenticable
       response.status == 200
     end
 
+    def public_route?
+      health_check? || product_routes?
+    end
+
     def health_check?
       controller_name == "health" && action_name == "show"
+    end
+
+    def product_routes?
+      controller_name == "products" && %w[index show].include?(action_name)
     end
 end

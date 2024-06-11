@@ -26,7 +26,7 @@ class ProductUpdateJob
         when :reserve
           product.update(reserved: product.reserved + line_item["quantity"])
         when :release
-          product.update(reserved: 0, stock: product.stock + product.reserved )
+          product.update(reserved: 0)
         end
       end
     end
