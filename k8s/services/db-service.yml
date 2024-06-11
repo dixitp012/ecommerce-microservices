@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: db
 spec:
   selector:
-    app: nginx
+    app: db
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: NodePort
+      port: 5432
+      targetPort: 5432
