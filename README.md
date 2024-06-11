@@ -232,14 +232,13 @@ POST /auth/login
 
 - **URL**: `/api/v1/products/:id`
 - **Method**: `GET`
-- **Auth Required**: Yes
+- **Auth Required**: No
 - **Description**: Retrieve a specific product by ID.
 
 #### Request Example:
 
 ```json
 GET /api/v1/products/:id
-Authorization: Bearer <your_token>
 ```
 
 ### Create Product
@@ -270,14 +269,13 @@ Authorization: Bearer <your_token>
 
 - **URL**: `/api/v1/products`
 - **Method**: `GET`
-- **Auth Required**: Yes
+- **Auth Required**: No
 - **Description**: Retrieve all products.
 
 #### Request Example:
 
 ```json
 GET /api/v1/products
-Authorization: Bearer <your_token>
 ```
 
 ### Update Product
