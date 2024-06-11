@@ -40,7 +40,7 @@ app.use("/api/v1/orders", (req, res) => {
   });
 });
 
-app.get('/up', (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).send("API Gateway is up and running");
 });
 
