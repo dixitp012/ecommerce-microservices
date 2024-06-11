@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: dixitp12/product_service:latest
+          env:
+            - name: RAILS_ENV
+              value: "development"
+            - name: RABBITMQ_URL
+              value: "amqp://rabbitmq:5672"
+            - name: REDIS_URL
+              value: "redis://redis:6379/0"
+            - name: USER_AUTH_SERVICE_URL
+              value: "http://user-auth-service:3000"
+            - name: USER_AUTH_SERVICE_TOKEN
+              value: "_LqV5KvJ43H8X-HFX1znseK9RXFSvTr7YfiwhO1pF-M"
+          ports:
+            - containerPort: 3000
