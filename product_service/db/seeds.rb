@@ -7,3 +7,15 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+# Ensure FactoryBot is loaded
+require 'factory_bot_rails'
+
+# Clear existing products
+Product.destroy_all
+
+# Create sample products
+10.times do
+  FactoryBot.create(:product)
+end
+
+puts "Created 10 sample products."
