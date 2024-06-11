@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-auth-service
+  labels:
+    app: user-auth-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: user-auth-service
@@ -12,15 +14,59 @@ spec:
       labels:
         app: user-auth-service
     spec:
+      initContainers:
+        - name: init-db
+          image: dixitp12/user_auth_service:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              bundle exec rails db:create &&
+              bundle exec rails db:migrate
+          env:
+            - name: RAILS_ENV
+              value: "development"
+            - name: DATABASE_HOST
+              value: "db"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_NAME
+              value: "user_auth_service_development"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "password"
       containers:
         - name: user-auth-service
           image: dixitp12/user_auth_service:latest
           env:
-            - name: RAILS_ENV
-              value: "development"
-            - name: RABBITMQ_URL
-              value: "amqp://rabbitmq:5672"
-            - name: REDIS_URL
-              value: "redis://redis:6379/0"
-          ports:
-            - containerPort: 3000
+            - name: DATABASE_HOST
+              value: "db"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_NAME
+              value: "user_auth_service_development"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "password"
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
