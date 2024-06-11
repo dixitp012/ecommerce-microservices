@@ -43,6 +43,7 @@ group :development, :test do
   gem 'faker'
   gem 'dotenv-rails'
   gem 'database_cleaner'
+  gem 'byebug'
 
   group :rubocop do
     gem "rubocop", ">= 1.25.1", require: false

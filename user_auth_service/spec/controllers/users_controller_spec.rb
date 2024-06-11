@@ -1,23 +1,43 @@
+# spec/controllers/users_controller_spec.rb
+
 require 'rails_helper'
+require 'doorkeeper'
 
 RSpec.describe UsersController, type: :controller do
-  let!(:user) { create(:user) }
-  let!(:application) { Doorkeeper::Application.create!(name: 'MicroserviceApp', redirect_uri: 'https://dummy-redirect-uri.com') }
-  let!(:token) { Doorkeeper::AccessToken.create!(application_id: application.id, resource_owner_id: user.id, scopes: 'public') }
+  let(:user) { create(:user) }
+  let(:token) { create(:access_token, application: nil, resource_owner_id: user.id) }
 
-  describe 'GET #show' do
-    context 'with a valid token' do
-      it 'returns the user' do
+  describe 'GET #fetch_user' do
+    context 'with valid token' do
+      before do
         request.headers['Authorization'] = "Bearer #{token.token}"
-        get :show, params: { id: user.id }
+        get :fetch_user
+      end
+
+      it 'returns the user' do
         expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)['email']).to eq(user.email)
+        expect(json['id']).to eq(user.id)
+        expect(json['email']).to eq(user.email)
       end
     end
 
-    context 'without a valid token' do
-      it 'returns an unauthorized error' do
-        get :show, params: { id: user.id }
+    context 'with invalid token' do
+      before do
+        request.headers['Authorization'] = "Bearer invalid_token"
+        get :fetch_user
+      end
+
+      it 'returns unauthorized status' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'without token' do
+      before do
+        get :fetch_user
+      end
+
+      it 'returns unauthorized status' do
         expect(response).to have_http_status(:unauthorized)
       end
     end

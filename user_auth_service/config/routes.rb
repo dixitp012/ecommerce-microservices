@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   use_doorkeeper
   devise_for :users, controllers: {  registrations: 'registrations' }
   post 'login', to: 'sessions#create'
-  get 'api/v1/users/:id', to: 'users#show'
+  get 'api/v1/users/fetch_user', to: 'users#fetch_user'
   get 'auth/validate_token', to: 'authentication#validate_token'
   
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

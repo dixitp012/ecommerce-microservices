@@ -14,7 +14,8 @@ class SessionsController < ApplicationController
         access_token: access_token.token,
         token_type: "Bearer",
         expires_in: access_token.expires_in,
-        refresh_token: access_token.refresh_token
+        refresh_token: access_token.refresh_token,
+        user_id: user.id
       }, status: :ok
     else
       render json: { error: "Invalid email or password" }, status: :unauthorized

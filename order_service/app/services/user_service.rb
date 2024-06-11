@@ -2,13 +2,12 @@
 
 class UserService
   def initialize
-    @token = ENV["USER_AUTH_SERVICE_TOKEN"]
     @base_url = ENV["USER_AUTH_SERVICE_URL"]
   end
 
-  def fetch_user(user_id)
-    response = HTTP.auth("Bearer #{@token}")
-                    .get("#{@base_url}/api/v1/users/#{user_id}")
+  def fetch_user(user_token)
+    response = HTTP.auth("Bearer #{user_token}")
+                    .get("#{@base_url}/api/v1/users/fetch_user")
     handle_response(response)
   end
 

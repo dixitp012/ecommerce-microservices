@@ -63,7 +63,7 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq:5672
       - REDIS_URL=redis://redis:6379/0
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
-      - USER_AUTH_SERVICE_TOKEN=_LqV5KvJ43H8X-HFX1znseK9RXFSvTr7YfiwhO1pF-M
+      - USER_AUTH_SERVICE_TOKEN=y1P8xNJoegXA1u2qa4d-LDMgdCTo7LuOyarC22oTNLA
     networks:
       - my_network
 
@@ -84,7 +84,7 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq:5672
       - REDIS_URL=redis://redis:6379/0
       - USER_AUTH_SERVICE_URL=http://user_auth_service:3000
-      - USER_AUTH_SERVICE_TOKEN=_LqV5KvJ43H8X-HFX1znseK9RXFSvTr7YfiwhO1pF-M
+      - USER_AUTH_SERVICE_TOKEN=y1P8xNJoegXA1u2qa4d-LDMgdCTo7LuOyarC22oTNLA
       - PRODUCT_SERVICE_URL=http://product_service:3000
     networks:
       - my_network
