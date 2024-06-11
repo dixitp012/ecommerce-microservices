@@ -5,7 +5,7 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: api-gateway
@@ -17,15 +17,9 @@ spec:
       containers:
         - name: api-gateway
           image: dixitp12/api_gateway:latest
-          env:
-            - name: USER_AUTH_SERVICE_URL
-              value: "http://user-auth-service:3000"
-            - name: PRODUCT_SERVICE_URL
-              value: "http://product-service:3000"
-            - name: ORDER_SERVICE_URL
-              value: "http://order-service:3000"
-            - name: PORT
-              value: "3000"
+          envFrom:
+            - configMapRef:
+                name: api-gateway-config
           readinessProbe:
             httpGet:
               path: /

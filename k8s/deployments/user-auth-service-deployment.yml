@@ -23,33 +23,19 @@ spec:
             - |
               bundle exec rails db:create &&
               bundle exec rails db:migrate
-          env:
-            - name: RAILS_ENV
-              value: "development"
-            - name: DATABASE_HOST
-              value: "db"
-            - name: DATABASE_PORT
-              value: "5432"
-            - name: DATABASE_NAME
-              value: "user_auth_service_development"
-            - name: DATABASE_USER
-              value: "postgres"
-            - name: DATABASE_PASSWORD
-              value: "password"
+          envFrom:
+            - configMapRef:
+                name: user-auth-service-config
+            - secretRef:
+                name: user-auth-service-secret
       containers:
         - name: user-auth-service
           image: dixitp12/user_auth_service:latest
-          env:
-            - name: DATABASE_HOST
-              value: "db"
-            - name: DATABASE_PORT
-              value: "5432"
-            - name: DATABASE_NAME
-              value: "user_auth_service_development"
-            - name: DATABASE_USER
-              value: "postgres"
-            - name: DATABASE_PASSWORD
-              value: "password"
+          envFrom:
+            - configMapRef:
+                name: user-auth-service-config
+            - secretRef:
+                name: user-auth-service-secret
           readinessProbe:
             httpGet:
               path: /up
